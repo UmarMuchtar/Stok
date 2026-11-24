@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5c"><meta name="mobile-web-app-capable" content="yes">
+<title>Stok Cafe</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--g:#1f6f5c;--gl:#e6f2ee;--r:#c0392b;--rl:#fdecea;--t:#1c1c1c;--m:#6b7280;--b:#e5e7eb;--bg:#f6f7f8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{background:var(--g);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;font-size:20px;font-weight:700;position:sticky;top:0;z-index:5}
+main{padding:12px 12px 170px;max-width:640px;margin:auto}
+h2{font-size:15px;margin:18px 4px 8px;color:var(--g);text-transform:uppercase;letter-spacing:.04em}
+.card{background:#fff;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px #0001}
+table{width:100%;border-collapse:collapse}
+td,th{padding:10px 6px;border-bottom:1px solid var(--b);text-align:left;font-size:15px}
+th.cat{background:var(--gl);color:var(--g);font-size:14px;border-radius:8px}
+td.n{width:30px;color:var(--m)}td.q{text-align:right;white-space:nowrap;font-weight:600}
+tr.low td{background:var(--rl);color:var(--r)}
+.btn{display:block;width:100%;min-height:54px;border:0;border-radius:14px;background:var(--g);color:#fff;font-size:17px;font-weight:700;margin:8px 0}
+.btn.s{background:#fff;color:var(--g);border:2px solid var(--g)}.btn.d{background:var(--r)}
+input,select{width:100%;min-height:50px;font-size:17px;padding:0 12px;border:2px solid var(--b);border-radius:12px;background:#fff;margin:4px 0}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+.chk{display:flex;align-items:center;gap:8px}.chk input{width:110px;text-align:center;margin:0}.chk span{width:64px;color:var(--m);font-size:14px}
+.low-i{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--b)}.low-i b{color:var(--r)}
+.empty{color:var(--m);text-align:center;padding:14px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid var(--b);padding-bottom:env(safe-area-inset-bottom);z-index:9}
+nav button{flex:1;border:0;background:none;padding:10px 0;font-size:12px;color:var(--m);min-height:64px}
+nav button b{display:block;font-size:22px}nav button.on{color:var(--g);font-weight:700}
+.sticky{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom))}
+#toast{position:fixed;left:50%;bottom:140px;transform:translateX(-50%);background:#222;color:#fff;padding:12px 18px;border-radius:24px;opacity:0;transition:.3s;pointer-events:none;z-index:20;max-width:90%;text-align:center}
+#toast.on{opacity:1}.sm{font-size:12px;color:var(--m)}
+.li{display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--b);min-height:48px}
+</style></head><body>
+<header>☕ Stok Cafe</header>
+<main>
+<section id="v-home"></section><section id="v-cek" hidden></section><section id="v-edit" hidden></section>
+</main>
+<nav><button data-v="home"><b>🏠</b>Beranda</button><button data-v="cek"><b>✅</b>Cek Stok</button><button data-v="edit"><b>✏️</b>Edit</button></nav>
+<div id="toast"></div>
+<script>
+const SEED=`REDBULL|Minuman Kemasan|kaleng
+SCHWEPPES|Minuman Kemasan|botol
+SUSU KENTAL MANIS|Susu & Krimer|kaleng
+AQUA|Minuman Kemasan|botol
+MAX CREAM|Susu & Krimer|pak
+KRIM CAFE|Susu & Krimer|pak
+SUSU UHT|Susu & Krimer|liter
+SIRUP PALM SUGAR DRIP|Sirup|botol
+SIRUP CARAMEL DRIPP|Sirup|botol
+SIRUP PASSION FRUIT DRIP|Sirup|botol
+SIRUP JINGGA MINT|Sirup|botol
+SIRUP JINGGA LEMON|Sirup|botol
+SIRUP VANILA DRIP|Sirup|botol
+SIRUP JINGGA LAVENDER|Sirup|botol
+SIRUP RHUM 191|Sirup|botol
+BIJI KOPI HOUSEBLEND|Kopi & Bubuk|kg
+MATCHA POWDER|Kopi & Bubuk|pak
+CHOCOLATE POWDER|Kopi & Bubuk|pak
+MADU|Bahan Dapur|botol
+SAUS MENTAI|Bahan Dapur|botol
+GALON|Minuman Kemasan|galon
+CIRENG|Makanan & Frozen|pak
+KENTANG|Makanan & Frozen|pak
+ES KRIM VANILA|Makanan & Frozen|tub
+DIMSUM|Makanan & Frozen|pak
+CHEESECAKE|Makanan & Frozen|pcs
+TURKISH|Makanan & Frozen|pcs
+ES BATU|Bahan Dapur|bungkus
+MACARONI SCHOTEL|Makanan & Frozen|porsi
+RAMOE|Makanan & Frozen|pak
+ND-01|Susu & Krimer|pak
+MINYAK GORENG|Bahan Dapur|liter
+SIRUP PALM SUGAR JINGGA|Sirup|botol
+EDAMAME|Makanan & Frozen|pak
+SIRUP PEACH|Sirup|botol
+SIRUP ORANGE|Sirup|botol
+F&N GINGER|Minuman Kemasan|kaleng
+SIRUP LAVENDER|Sirup|botol
+PEMBERSIH MEJA|Perlengkapan|botol
+PORSTEK|Perlengkapan|botol
+BATERAI A3|Perlengkapan|pcs
+ES KRIM|Makanan & Frozen|tub
+GULA PASIR|Bahan Dapur|kg
+TRASHBAG|Perlengkapan|pak
+SAUS BAWANG|Bahan Dapur|botol
+BIJI KOPI ROBUSTA|Kopi & Bubuk|kg`;
+const DEF_TH={botol:3,kaleng:6,pak:2,kg:1,liter:2,galon:1,tub:1,pcs:3,porsi:3,bungkus:2};
+const $=s=>document.querySelector(s), cmp=(a,b)=>a.localeCompare(b,'id');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let items,cats,th,editId=null;
+function load(){
+  const g=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+  items=g('items');
+  if(!items){items=SEED.split('\n').map(l=>l.split('|')).sort((a,b)=>cmp(a[0],b[0])).map((r,i)=>({id:i+1,nama:r[0],kat:r[1],jml:0,sat:r[2]}))}
+  cats=g('cats')||[...new Set(items.map(i=>i.kat))].sort(cmp);
+  th=DEF_TH;items.forEach(i=>{if(i.min==null||isNaN(i.min))i.min=th[i.sat]??2});
+}
+function save(){try{localStorage.setItem('items',JSON.stringify(items));localStorage.setItem('cats',JSON.stringify(cats))}catch(e){toast('Gagal menyimpan')}}
+const low=i=>Number(i.jml)<=Number(i.min);
+const byName=(a,b)=>cmp(a.nama,b.nama);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200)}
+function grouped(){const all=[...new Set([...cats,...items.map(i=>i.kat)])].sort(cmp);return all.map(c=>[c,items.filter(i=>i.kat===c).sort(byName)]).filter(x=>x[1].length)}
+
+function home(){
+  const lo=items.filter(low).sort(byName);
+  let h=`<h2>⚠️ Harus segera di-restock (${lo.length})</h2><div class="card">`;
+  h+=lo.length?lo.map(i=>`<div class="low-i"><span>${esc(i.nama)}<div class="sm">minimum: ${i.min} ${esc(i.sat)}</div></span><b>${i.jml} ${esc(i.sat)}</b></div>`).join(''):'<div class="empty">Semua stok aman 👍</div>';
+  h+=`</div><button class="btn" id="exp">📤 Ekspor Teks</button><h2>Semua item</h2>`;
+  grouped().forEach(([c,l])=>{h+=`<div class="card"><table><tr><th class="cat" colspan="3">${esc(c)}</th></tr>`+l.map(i=>`<tr class="${low(i)?'low':''}"><td class="n">${i.id}</td><td>${esc(i.nama)}</td><td class="q">${i.jml} ${esc(i.sat)}</td></tr>`).join('')+'</table></div>'});
+  $('#v-home').innerHTML=h;$('#exp').onclick=exportText;
+}
+function exportText(){
+  const ln=i=>`${i.id}. ${i.nama} ${i.jml} ${i.sat}`;
+  const d=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const lo=items.filter(low).sort(byName);
+  const txt=`STOK CAFE - ${d}\n\n`+[...items].sort((a,b)=>a.id-b.id).map(ln).join('\n')+`\n\nHARUS SEGERA DI-RESTOCK:\n`+(lo.length?lo.map(ln).join('\n'):'(tidak ada)');
+  if(navigator.share){navigator.share({text:txt}).catch(()=>{})}
+  else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>toast('Teks disalin ke clipboard'))}
+  else{prompt('Salin teks:',txt)}
+}
+function cek(){
+  let h='<h2>Update jumlah stok</h2><p class="sm" style="margin:0 4px 8px">Isi jumlah terbaru. Kolom kosong = tidak diubah.</p>';
+  grouped().forEach(([c,l])=>{h+=`<div class="card"><table><tr><th class="cat" colspan="2">${esc(c)}</th></tr>`+l.map(i=>`<tr><td>${esc(i.nama)}<div class="sm">sebelumnya: ${i.jml} · min: ${i.min}</div></td><td><div class="chk"><input type="number" inputmode="decimal" min="0" step="any" placeholder="${i.jml}" data-id="${i.id}"><span>${esc(i.sat)}</span></div></td></tr>`).join('')+'</table></div>'});
+  h+='<div class="sticky"><button class="btn" id="ok">💾 Konfirmasi Update Stok</button></div>';
+  $('#v-cek').innerHTML=h;
+  $('#ok').onclick=()=>{let n=0;document.querySelectorAll('#v-cek input').forEach(inp=>{if(inp.value!==''){const it=items.find(x=>x.id==inp.dataset.id);const v=parseFloat(inp.value);if(it&&!isNaN(v)&&v>=0){if(it.jml!==v)n++;it.jml=v}}});save();toast(n+' item diperbarui');show('home')};
+}
+function edit(){
+  const e=items.find(i=>i.id===editId);
+  const sats=[...new Set(items.map(i=>i.sat))].sort(cmp);
+  let h=`<h2>${e?'Edit item':'Tambah item'}</h2><div class="card">
+  <input id="fn" placeholder="Nama item" value="${e?esc(e.nama):''}">
+  <select id="fk">${cats.map(c=>`<option ${e&&e.kat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+  <div class="row"><input id="fj" type="number" inputmode="decimal" placeholder="Jumlah" value="${e?e.jml:0}"><input id="fs" list="sl" placeholder="Satuan" value="${e?esc(e.sat):''}"></div>
+  <input id="fm" type="number" inputmode="decimal" min="0" placeholder="Minimum restock" value="${e?e.min:''}"><div class="sm" style="margin:0 4px 6px">Item masuk daftar restock jika jumlah ≤ minimum. Kosong = otomatis sesuai satuan.</div><datalist id="sl">${sats.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+  <button class="btn" id="fsave">${e?'Simpan perubahan':'Tambah item'}</button>
+  ${e?'<button class="btn s" id="fcancel">Batal</button><button class="btn d" id="fdel">Hapus item</button>':''}</div>
+  <h2>Daftar item (ketuk untuk edit)</h2><div class="card">${[...items].sort(byName).map(i=>`<div class="li" data-e="${i.id}"><span>${esc(i.nama)}<div class="sm">${esc(i.kat)}</div></span><span style="text-align:right">${i.jml} ${esc(i.sat)}<div class="sm">min ${i.min}</div></span></div>`).join('')}</div>
+  <h2>Kategori</h2><div class="card"><div class="row"><input id="nc" placeholder="Kategori baru" style="flex:2"><button class="btn" id="addc" style="flex:1;margin:4px 0">Tambah</button></div>
+  ${cats.map((c,k)=>`<div class="li"><span>${esc(c)} <span class="sm">(${items.filter(i=>i.kat===c).length})</span></span><span><button data-rn="${k}" style="font-size:20px;border:0;background:none;min-width:44px;min-height:44px">✏️</button><button data-dc="${k}" style="font-size:20px;border:0;background:none;min-width:44px;min-height:44px">🗑️</button></span></div>`).join('')}</div>
+  <h2>Database Excel (.xlsx)</h2><div class="card"><button class="btn" id="xd">⬇️ Unduh stok-cafe.xlsx</button><button class="btn s" id="xu">⬆️ Impor dari .xlsx</button><input type="file" id="xf" accept=".xlsx,.xls" hidden>
+  <button class="btn d" id="reset">Reset ke data awal</button></div>`;
+  $('#v-edit').innerHTML=h;
+  $('#fsave').onclick=()=>{
+    const nama=$('#fn').value.trim().toUpperCase(),sat=$('#fs').value.trim(),kat=$('#fk').value,jml=parseFloat($('#fj').value)||0,mn=parseFloat($('#fm').value),min=isNaN(mn)?(th[sat]??2):mn;
+    if(!nama||!sat||!kat)return toast('Nama, kategori, dan satuan wajib diisi');
+    if(items.some(i=>i.nama===nama&&i.id!==editId))return toast('Nama item sudah ada');
+    if(e){Object.assign(e,{nama,kat,sat,jml,min})}else{items.push({id:Math.max(0,...items.map(i=>i.id))+1,nama,kat,jml,sat,min})}
+    save();toast('Tersimpan');editId=null;edit()};
+  if(e){$('#fcancel').onclick=()=>{editId=null;edit()};$('#fdel').onclick=()=>{if(confirm('Hapus '+e.nama+'?')){items=items.filter(i=>i!==e);editId=null;save();edit()}}}
+  document.querySelectorAll('[data-e]').forEach(r=>r.onclick=()=>{editId=+r.dataset.e;edit();scrollTo(0,0)});
+  $('#addc').onclick=()=>{const c=$('#nc').value.trim();if(!c)return;if(cats.includes(c))return toast('Kategori sudah ada');cats.push(c);cats.sort(cmp);save();edit()};
+  document.querySelectorAll('[data-rn]').forEach(b=>b.onclick=()=>{const o=cats[b.dataset.rn],n=(prompt('Nama kategori baru:',o)||'').trim();if(!n||n===o)return;items.forEach(i=>{if(i.kat===o)i.kat=n});cats=[...new Set(cats.map(c=>c===o?n:c))].sort(cmp);save();edit()});
+  document.querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{const c=cats[b.dataset.dc];if(items.some(i=>i.kat===c))return toast('Kategori masih dipakai item');if(confirm('Hapus kategori '+c+'?')){cats=cats.filter(x=>x!==c);save();edit()}});
+  $('#xd').onclick=()=>{if(!window.XLSX)return toast('Library Excel belum termuat (butuh internet)');
+    const ws=XLSX.utils.aoa_to_sheet([['id','nama item','kategori','jumlah','satuan'],...[...items].sort((a,b)=>a.id-b.id).map(i=>[i.id,i.nama,i.kat,i.jml,i.sat])]);
+    ws['!cols']=[{wch:6},{wch:32},{wch:20},{wch:10},{wch:10}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Stok');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['id','nama item','minimum restock'],...[...items].sort((a,b)=>a.id-b.id).map(i=>[i.id,i.nama,i.min])]),'Minimum');XLSX.writeFile(wb,'stok-cafe.xlsx')};
+  $('#xu').onclick=()=>$('#xf').click();
+  $('#xf').onchange=async ev=>{const f=ev.target.files[0];if(!f||!window.XLSX)return;
+    try{const wb=XLSX.read(await f.arrayBuffer());const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).slice(1).filter(r=>r[1]);
+      if(!rows.length)return toast('File kosong / format salah');
+      if(!confirm('Ganti semua data dengan '+rows.length+' item dari file ini?'))return;
+      const mm={};if(wb.Sheets['Minimum'])XLSX.utils.sheet_to_json(wb.Sheets['Minimum'],{header:1}).slice(1).forEach(r=>{if(r[0]!=null&&!isNaN(parseFloat(r[2])))mm[r[0]]=parseFloat(r[2])});
+      items=rows.map((r,k)=>{const id=+r[0]||k+1,sat=String(r[4]||'pcs').trim();return{id,nama:String(r[1]).trim(),kat:String(r[2]||'Lainnya').trim(),jml:parseFloat(r[3])||0,sat,min:mm[id]??(th[sat]??2)}});
+      cats=[...new Set([...cats,...items.map(i=>i.kat)])].sort(cmp);save();toast('Impor berhasil');edit()}catch(x){toast('Gagal membaca file')}};
+  $('#reset').onclick=()=>{if(confirm('Hapus semua perubahan & kembali ke data awal?')){localStorage.clear();load();save();edit()}};
+}
+const views={home,cek,edit};
+function show(v){
+  document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='v-'+v);
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v!=='edit')editId=null;views[v]();scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+load();save();show('home');
+
+// ===== PWA: manifest + ikon dibuat otomatis (tetap 1 file) =====
+(function(){
+  const ic=n=>{const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.fillStyle='#1f6f5c';x.fillRect(0,0,n,n);x.font=(n*.55)+'px serif';x.textAlign='center';x.textBaseline='middle';x.fillText('☕',n/2,n*.54);return c.toDataURL('image/png')};
+  const i192=ic(192),i512=ic(512),u=location.origin+location.pathname;
+  const m={name:'Stok Cafe',short_name:'Stok Cafe',start_url:u,scope:u.replace(/[^/]*$/,''),display:'standalone',orientation:'portrait',background_color:'#1f6f5c',theme_color:'#1f6f5c',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any'}]};
+  const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l);
+  const a=document.createElement('link');a.rel='apple-touch-icon';a.href=i192;document.head.appendChild(a);
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script></body></html>
